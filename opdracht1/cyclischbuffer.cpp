@@ -3,7 +3,8 @@
 // ./cyclischbuffer
 
 //TODO: voeg de juiste include toe
-
+#include "cyclischbuffer.hpp"
+#include "buffer.hpp"
 
 int main(int nArgc, char* aArgv[]) {
 

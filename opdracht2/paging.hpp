@@ -1,13 +1,13 @@
-// w4.1.1cyclischbuffer
+// w4.1.2paging
 
-#ifndef _CYCLISCHBUFFER_HPP_
-#define _CYCLISCHBUFFER_HPP_
+#ifndef _PAGING_HPP_
+#define _PAGING_HPP_
 
   #include <stdbool.h>
   #include <stdio.h>
   #include <string.h>
   #include <time.h>
-  #include "buffer.hpp"
+  #include "blokbuffer.hpp"
 
   // Maak #define voor handige delay-functie in msec
   #define thread_delay(nMSec) \
@@ -18,5 +18,4 @@
     nanosleep(&oTime, &oTimeLeft); \
   };
 
-#endif // _CYCLISCHBUFFER_HPP_
-
+#endif
