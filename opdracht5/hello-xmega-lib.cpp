@@ -79,6 +79,31 @@ bool XmegaReadByte(uint8_t* nByte) {
 
   return true;
 };
+uint8_t getSizeofBuffer(uint8_t *buffer){
+	uint8_t i = 0;
+	while(*buffer != '\0' && *buffer != '\n' && *buffer != '\r'){
+		i++; *buffer++;
+	}
+	return i;
+}
+/*
+bool XmegaWriteStr(uint8_t* buffer) {
+
+  ssize_t nSize;
+
+  // Check for valid open connection
+  if (_nTtyAcmConnection == 0) {
+    return false;
+  }
+  // Read one byte only
+  nSize = write(_nTtyAcmConnection, nByte, 1);
+  if (nSize != 1) {
+    return false;
+  };
+
+  return true;
+};
+*/
 
 bool XmegaWriteByte(uint8_t* nByte) {
 
