@@ -10,24 +10,24 @@ bool InitXmegaSerial(char* pTtyAcm, int nBaudrate, int nParity) {
 
   // A possible string?
   if (pTtyAcm == NULL) {
-		printf("No valid device name!\n");
+		//printf("No valid device name!\n");
 		return false; 
   }
 
   // Try to open the serial connection
-  printf("[%s] ", pTtyAcm);
+  //printf("[%s] ", pTtyAcm);
   _nTtyAcmConnection = open(pTtyAcm, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	if (_nTtyAcmConnection == 0)
 	{
 		perror(pTtyAcm);
-		printf("Failed to open device: %s\n", pTtyAcm);
+	//	printf("Failed to open device: %s\n", pTtyAcm);
 		return false; 
 	}
 
   // Clear struct to start with new settings
   memset(&oTty, 0, sizeof(oTty));
   if (tcgetattr(_nTtyAcmConnection, &oTty) != 0) {
-    printf("Error %i getting settings: %s\n", errno, strerror(errno));
+    //printf("Error %i getting settings: %s\n", errno, strerror(errno));
   };
 
   oTty.c_cflag |= CREAD | CS8; // Enable read, 8 bits per byte
@@ -48,7 +48,7 @@ bool InitXmegaSerial(char* pTtyAcm, int nBaudrate, int nParity) {
   // Clear buffer and set new settings
   tcflush(_nTtyAcmConnection, TCIFLUSH);
   if (tcsetattr(_nTtyAcmConnection, TCSANOW, &oTty) != 0) {
-    printf("Error %i setting settings: %s\n", errno, strerror(errno));
+    //printf("Error %i setting settings: %s\n", errno, strerror(errno));
   };
 
   return true;
@@ -73,7 +73,7 @@ bool XmegaReadByte(uint8_t* nByte) {
   }
 
   if (nSize == -1) {
-    printf("Error reading: %s", strerror(errno));
+    //printf("Error reading: %s", strerror(errno));
     return false;
   }
 
