@@ -101,6 +101,8 @@ int initMainWindow(){
 
 int initHeader(void){
 	// 
+	char str[255];
+	uint8_t str_len = 0;
     childwinh = subwin(mainwin, 10, width - 4, 1, 2);
     box(childwinh, '|', '-');
     mvwaddstr(childwinh, 1, 3, "8888888888     888               d8b           .d88888b.   .d8888b.   |");
@@ -114,8 +116,16 @@ int initHeader(void){
     mvwaddstr(childwinh, 6, 76, "Embedded Systems | HvA 2020");
     mvwaddstr(childwinh, 7, 76, "Rowan Bolding");
     mvwaddstr(childwinh, 8, 76, "Bart-Jan van Strien");
-
-    mvwaddstr(childwinh, 8, max_x - 23, "Press ESC to exit");
+	strcpy(str, "Press SHIFT+Right_arrow -> to switch to next program");
+	str_len = strlen(str);
+	mvwaddstr(childwinh, 6, max_x - (str_len+7), str);
+	strcpy(str, "Press SHIFT+Left_arrow <- to switch to previous program");
+	str_len = strlen(str);
+	mvwaddstr(childwinh, 7, max_x - (str_len+7), str);
+	strcpy(str, "Press ESC to exit");
+	str_len = strlen(str);
+    mvwaddstr(childwinh, 8, max_x - (str_len+7), str);
+	
 	return 0;
 }
 
@@ -133,7 +143,7 @@ int initChildWindow_2(void){
     childWin_2 = subwin(mainwin, height - 12, halfwidth - 3, 11, halfwidth + 1);
     box(childWin_2, '|', '-');
     attroff(COLOR_PAIR(UNSELECTED_WIN));
-    mvwaddstr(childWin_2, 6, 7, "Verbinden...");
+    // mvwaddstr(childWin_2, 6, 7, "Verbinden...");
     //mvwaddstr(childWin_2, 7, 11, "met XMEGA...");
     //mvwaddstr(childWin_2, 8, 8, "Rowan Bolding");
     //mvwaddstr(childWin_2, 9, 5, "Bart-Jan van Strien");
