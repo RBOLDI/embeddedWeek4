@@ -3,6 +3,13 @@
 #ifndef _NCURSESIO_HPP_
 #define _NCURSESIO_HPP_
 #define ESC 27
+#define ENTER 10
+#define SHIFT_RIGHT 402
+#define SHIFT_LEFT	393
+
+#define PROGRAM_1 	0
+#define PROGRAM_2	1
+#define PROGRAM_NUM	2
   //TODO: zorg dat ncurses beschikbaar is
   #include <iostream>
   #include <curses.h>
@@ -11,7 +18,9 @@
   #include <stdint.h>
   #include <string.h>
   #include <time.h>
-  #include "hello-xmega-lib.hpp"
+  
+  #include "program1.hpp"
+  #include "program2.hpp"
 
   // Maak #define voor handige delay-functie in msec
   #define thread_delay(nMSec) \

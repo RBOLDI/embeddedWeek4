@@ -2,7 +2,7 @@
 
 using namespace std;
 
-bool program_1(int nKey){
+bool program_1(int nKey, WINDOW *childWin){
 	mvprintw(5,5, "Programn 1: %c", nKey); refresh();
 	return false;
 }

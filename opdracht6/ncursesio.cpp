@@ -6,30 +6,78 @@
 //
 // Compile: g++ -Wall -o ncurses ncurses.cpp -lncurses
 // Run    : ./ncurses
-#define SELECTED_WIN 1
-#define UNSELECTED_WIN 2
-
 #include "ncursesio.hpp"
 
 using namespace std;
 
-int main()
-{
-    char sUsbName[] = "/dev/ttyACM0";
-    int nKey;
-    int ch;
-    bool bExit;
-    uint8_t nByte;
+//WINDOW CLASS POINTERS
+WINDOW * mainwin, * childWin_1, * childWin_2, * childwinh;
 
-    char string[100];
+//Main window parameters:
+static int width; 
+static int height;
+static int halfwidth;
+static int max_x;
+static int max_y;
 
-    printw("w4.2.2ncursesio\n\n"); refresh();
 
-    WINDOW * mainwin, * childwin, * childwin2, * childwinh;
+/*********************************************************************************
+PROGRAM MANAGER
+*********************************************************************************/
+uint8_t activeProgramIndex = PROGRAM_1;
 
-    // init main window;
-    int max_x;
-    int max_y;
+uint8_t nextActiveProgram(void){
+	activeProgramIndex++;
+	if(activeProgramIndex == PROGRAM_NUM) activeProgramIndex = PROGRAM_1;
+	return activeProgramIndex;
+}
+
+uint8_t previousActiveProgram(void){
+	if(activeProgramIndex == PROGRAM_1) activeProgramIndex = PROGRAM_NUM-1;
+	activeProgramIndex--;
+	return activeProgramIndex;
+}
+
+bool closeCurrentProgram(uint8_t program){
+	switch(activeProgramIndex){
+		case PROGRAM_1:
+			closeProgram_1(childWin_1);
+		break;
+	case PROGRAM_2:
+			closeProgram_2(childWin_2);
+		break;
+	}
+	return false;
+}
+
+bool manager(int Key){
+	if(Key == SHIFT_RIGHT){
+		closeCurrentProgram(activeProgramIndex);
+		nextActiveProgram();
+		return false;
+	}
+	if(Key == SHIFT_LEFT){
+		closeCurrentProgram(activeProgramIndex);
+		previousActiveProgram();
+		return false;
+	}
+	
+	switch (activeProgramIndex){
+		case PROGRAM_1:
+			program_1(Key, childWin_1);
+			break;
+		case PROGRAM_2:
+			program_2(Key, childWin_2);
+			break;
+	}
+	return false;
+}
+
+/*********************************************************************************
+WINDOW MANAGER
+*********************************************************************************/
+int initMainWindow(){
+
     if ( (mainwin = initscr()) == NULL )
     {
         fprintf(stderr, "ERROR INIT NCURSES\n");
@@ -38,8 +86,9 @@ int main()
     box(mainwin, '|', '-');
 
     getmaxyx(stdscr,max_y,max_x);
-    int width = max_x, height = max_y;
-    int halfwidth = width / 2;
+    width = max_x;
+	height = max_y;
+    halfwidth = width / 2;
 
     noecho();
     start_color();
@@ -47,8 +96,11 @@ int main()
 
     init_pair(1, COLOR_RED,COLOR_BLACK);
     init_pair(2, COLOR_WHITE,COLOR_BLACK);
+	return 0;
+}
 
-    // init header child window
+int initHeader(void){
+	// 
     childwinh = subwin(mainwin, 10, width - 4, 1, 2);
     box(childwinh, '|', '-');
     mvwaddstr(childwinh, 1, 3, "8888888888     888               d8b           .d88888b.   .d8888b.   |");
@@ -64,81 +116,92 @@ int main()
     mvwaddstr(childwinh, 8, 76, "Bart-Jan van Strien");
 
     mvwaddstr(childwinh, 8, max_x - 23, "Press ESC to exit");
+	return 0;
+}
 
-
-    // init child window
-    attron(COLOR_PAIR(SELECTED_WIN));
-    childwin = subwin(mainwin, height - 12, halfwidth - 2, 11, 2);
-    box(childwin, '|', '-');
+int initChildWindow_1(void){
+	attron(COLOR_PAIR(SELECTED_WIN));
+    childWin_1 = subwin(mainwin, height - 12, halfwidth - 2, 11, 2);
+    box(childWin_1, '|', '-');
     attroff(COLOR_PAIR(SELECTED_WIN));
-    mvwaddstr(childwin, 1, 0, "Verbinden");
-  
-    // init child2 window
-    attron(COLOR_PAIR(UNSELECTED_WIN));
-    childwin2 = subwin(mainwin, height - 12, halfwidth - 3, 11, halfwidth + 1);
-    box(childwin2, '|', '-');
+    mvwaddstr(childWin_1, 1, 0, "Verbinden");
+	return 0;
+}
+
+int initChildWindow_2(void){
+	attron(COLOR_PAIR(UNSELECTED_WIN));
+    childWin_2 = subwin(mainwin, height - 12, halfwidth - 3, 11, halfwidth + 1);
+    box(childWin_2, '|', '-');
     attroff(COLOR_PAIR(UNSELECTED_WIN));
-    mvwaddstr(childwin2, 6, 7, "Verbinden...");
-    //mvwaddstr(childwin2, 7, 11, "met XMEGA...");
-    //mvwaddstr(childwin2, 8, 8, "Rowan Bolding");
-    //mvwaddstr(childwin2, 9, 5, "Bart-Jan van Strien");
+    mvwaddstr(childWin_2, 6, 7, "Verbinden...");
+    //mvwaddstr(childWin_2, 7, 11, "met XMEGA...");
+    //mvwaddstr(childWin_2, 8, 8, "Rowan Bolding");
+    //mvwaddstr(childWin_2, 9, 5, "Bart-Jan van Strien");
+	return 0;
+}
+
+/*********************************************************************************
+XMEGA SERIAL
+*********************************************************************************/
+int initXmegaSerial(void){
+	char sUsbName[] = "/dev/ttyACM0";
+	if (!InitXmegaSerial(sUsbName, B38400, 0)) {
+		//fout
+		mvwaddstr(childWin_1, 1, 3, "VERBINDING MISLUKT");
+	}
+	else {
+		//goei
+		mvwaddstr(childWin_1, 1, 3, "Verbonden");
+	};
+	wrefresh(childWin_1);
+	return 0;
+}
+
+/*********************************************************************************
+MAIN
+*********************************************************************************/
+
+int main()
+{
+    int nKey;
+    bool bExit;
+	//Initialiseer windows
+    printw("w4.2.2ncursesio\n\n"); refresh();
+	initMainWindow();
+	initHeader();
+	initChildWindow_1();
+    initChildWindow_2();
     refresh();
-    wmove(childwin,1,1);
-    wclrtoeol(childwin);
+	
+	//start met childWindow 1 (childWin_1)
+    wmove(childWin_1,1,1);
+    wclrtoeol(childWin_1);
     attron(COLOR_PAIR(UNSELECTED_WIN));
-    box(childwin, '|', '-');
+    box(childWin_1, '|', '-');
     attroff(COLOR_PAIR(UNSELECTED_WIN));
+	
     // Initialiseer de correct Xmega-connectie
-    if (!InitXmegaSerial(sUsbName, B38400, 0)) {
-      //fout
-      mvwaddstr(childwin, 1, 3, "VERBINDING MISLUKT");
-    }
-    else {
-      //goei
-      mvwaddstr(childwin, 1, 3, "Verbonden");
-    };
-  wrefresh(childwin);
-    
+    initXmegaSerial();
+	
     // wait for user input before exit
-    bExit = false;
-    while (!bExit) {
-        nKey = getch();
-        // Exit is ESC
-        if (nKey == ESC) {
-        bExit = true;
-        };
-
-
-        if (nKey != -1) {
-            ch = nKey; 
-            wmove(childwin,3,1);
-            wclrtoeol(childwin);
-            wmove(childwin,4,1);
-            wclrtoeol(childwin);
-            wmove(childwin,5,1);
-            wclrtoeol(childwin);
-            sprintf(string,"KEY NAME : %s - %d\n", keyname(ch),ch);
-            mvwaddstr(childwin, 3, 3, string);
-            sprintf(string,"Toets: %d=%c    ", nKey, nKey);
-            mvwaddstr(childwin, 4, 3, string);
-            XmegaWriteByte((uint8_t*)&nKey);
-            while (!XmegaReadByte(&nByte));
-            sprintf(string,"Xmega: %d=%c    ", nByte, nByte);
-            mvwaddstr(childwin, 5, 3, string);
-            attron(COLOR_PAIR(UNSELECTED_WIN));
-            box(childwin, '|', '-');
-            attroff(COLOR_PAIR(UNSELECTED_WIN));
-            wrefresh(childwin);
-        };
-
-
+	
+	bExit = false;
+	while (!bExit) {
+		nKey = getch();
+		// Exit is ESC
+		if (nKey == ESC) {
+		bExit = true;
+		};
+		if(nKey != -1){
+			manager(nKey);
+		}
   };
 	
     // EXIT!
     CloseXmegaSerial();
     delwin(childwinh);
-    delwin(childwin);
-    delwin(childwin2);
+    delwin(childWin_1);
+    delwin(childWin_2);
     delwin(mainwin);
     endwin();
     refresh();
